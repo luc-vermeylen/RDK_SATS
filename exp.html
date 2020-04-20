@@ -5,6 +5,8 @@
         <script src="jspsych-6.1.0/jspsych.js"></script>
         <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
         <script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+        <script src="jspsych-6.1.0/plugins/jspsych-html-slider-response.js"></script>
+        <script src="jspsych-6.1.0/plugins/jspsych-html-slider-response-luc.js"></script>
         <script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
         <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
         <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
@@ -25,11 +27,11 @@
 
     // variables
     var faster_trials = true // for debugging, if true, you can stop any event (fixation, stimulus, feedback) immediately with a key press
-    var debug_info_console = false
-    var switch_to_fullscreen = true
-    var n_design_reps = 5 // one repetition = 12 trials per block, 5 repetitons of the design = 60 trials per block
+    var debug_info_console = true
+    var switch_to_fullscreen = false
+    var n_design_reps = 1 // one repetition = 12 trials per block, 5 repetitons of the design = 60 trials per block
     var n_design_reps_training = 1
-    var n_blocks = 10 // number of experimental blocks (there is also at least one training block with coherence .4 and another training block with coherence .4, .2 or .05)
+    var n_blocks = 2 // number of experimental blocks (there is also at least one training block with coherence .4 and another training block with coherence .4, .2 or .05)
 
     var training_1_criterion = 50 // percentage accuracy necessary to move on in training 1 (coherence = .4)
     var training_2_criterion = 50
@@ -46,7 +48,6 @@
     var location_offset = function() {return (window.innerHeight/4)} // number of pixels above/below center of window for the RDK
 
     // fixed counterbalancing for confidence response mapping
-    correct_confidence = "right"
     uneven_blocks = "accuracy" // = first block
 
     // design
@@ -100,7 +101,6 @@
           gender: '',
           resp_confidence: -1,
           rt_confidence: -1,
-          confidence_CB: correct_confidence,
           sat_CB: uneven_blocks,
           pc_info: JSON.stringify(bowser)
         });
@@ -150,15 +150,11 @@
     var instruct3 = {
       type: 'image-keyboard-response',
       stimulus: function() {
-        if (correct_confidence == 'right'){
-          return 'img/Slide3B.PNG'
-        } else {
-          return 'img/Slide3A.PNG'
-        }
+        return 'img/Slide3.PNG'
       },
       response_ends_trial: true,
-      stimulus_width: function() {
-        return window.innerWidth / 1.2
+      stimulus_height: function() {
+        return window.innerWidth * .5
       },
       choices: ['space'],
       on_start: function() {block = 1}
@@ -167,11 +163,7 @@
     var instruct4 = {
       type: 'image-keyboard-response',
       stimulus: function() {
-        if (correct_confidence == 'right'){
-          return 'img/Slide4B.PNG'
-        } else {
-          return 'img/Slide4A.PNG'
-        }
+        return 'img/Slide4.PNG'
       },
       response_ends_trial: true,
       stimulus_width: function() {
@@ -255,12 +247,12 @@
           }
         },
         RDK_type: 5,
-        choices: ["v", "n"], // valid response keys
+        choices: ["e", "t"], // valid response keys
         correct_choice: function() {
           if (jsPsych.timelineVariable('direction', true) == 'right') {
-            return "n"
+            return "t"
           } else {
-            return "v"
+            return "e"
           }
         },
         trial_duration: 5000,
@@ -305,80 +297,26 @@
         }
     };
 
-    var confidence_rating = {
-      type: 'html-keyboard-response',
-      stimulus: function() {
-        if (correct_confidence == 'right'){
-          left_word = 'fout'
-          right_word = 'juist'
-        } else {
-          left_word = 'juist'
-          right_word = 'fout'
-        }
-        one = '<div style="position: absolute; top: 50%; left: 30%; transform: translate(-50%, 0);">Zeker <br> '+left_word+'</div>'
-        two = '<div style="position: absolute; top: 50%; left: 37.5%; transform: translate(-50%, 0);">Vermoed <br> '+left_word+'</div>'
-        three = '<div style="position: absolute; top: 50%; left: 45%; transform: translate(-50%, 0);">Gok <br> '+left_word+'</div>'
-        eight = '<div style="position: absolute; top: 50%; left: 55%; transform: translate(-50%, 0);">Gok <br> '+right_word+'</div>'
-        nine = '<div style="position: absolute; top: 50%; left: 62.5%; transform: translate(-50%, 0);">Vermoed <br> '+right_word+'</div>'
-        zero = '<div style="position: absolute; top: 50%; left: 70%; transform: translate(-50%, 0);">Zeker <br> '+right_word+'</div>'
-        return one + two + three + eight + nine + zero
-      },
-      choices: ['e','r','t','u','i','o'], // REMOVE SPACE!!
+    var confidence_slider = {
+      type: 'html-slider-response-luc',
+      stimulus: "<p>Hoe zeker ben je van je antwoord?</p>",
+      response_ends_trial: true,
+      require_movement: true,
+      button_label: "Volgende",
+      labels: ['Zeker Fout', 'Gok', 'Zeker Juist'],
+      on_start: function() {$('body').css('cursor', 'default')},
       on_finish: function(data){
-        data.event = 'confidence'
-        response = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(data.key_press);
-        if (correct_confidence == 'right'){
-          if (response == 'e') {confidence_level = 1}
-          else if (response == 'r') {confidence_level = 2}
-          else if (response == 't') {confidence_level = 3}
-          else if (response == 'u') {confidence_level = 4}
-          else if (response == 'i') {confidence_level = 5}
-          else if (response == 'o') {confidence_level = 6}
-        } else {
-          if (response == 'e') {confidence_level = 6}
-          else if (response == 'r') {confidence_level = 5}
-          else if (response == 't') {confidence_level = 4}
-          else if (response == 'u') {confidence_level = 3}
-          else if (response == 'i') {confidence_level = 2}
-          else if (response == 'o') {confidence_level = 1}
-        }
-        data.resp_confidence = confidence_level;
-        data.rt_confidence = data.rt
+        $('body').css('cursor', 'none')
+        console.log(data.response)
+        console.log(data.rt_choice)
+        console.log(data.rt_confirm)
+
         l = jsPsych.data.get().values()["length"]
-        jsPsych.data.get().values()[l-2].resp_confidence = confidence_level;
-        jsPsych.data.get().values()[l-2].rt_confidence = data.rt;
+        jsPsych.data.get().values()[l-2].resp_confidence = data.response;
+        jsPsych.data.get().values()[l-2].rt_confidence = data.rt_choice;
+        jsPsych.data.get().values()[l-2].rt_confirm = data.rt_confirm;
       }
-    };
-
-    var confidence_feedback = {
-      type: 'html-keyboard-response',
-      stimulus: function() {
-        var last_trial_response = jsPsych.data.get().last(1).values()[0].key_press;
-        resp = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(last_trial_response);
-
-        var colorFB = {'e': 'white', 'r': 'white', 't': 'white', 'u': 'white', 'i': 'white', 'o': 'white'}
-        colorFB[resp] = 'green'
-        if (correct_confidence == 'right'){
-          left_word = 'fout'
-          right_word = 'juist'
-        } else {
-          left_word = 'juist'
-          right_word = 'fout'
-        }
-        one = '<div style="color: '+ colorFB['e'] +'; position: absolute; top: 50%; left: 30%; transform: translate(-50%, 0);">Zeker <br> '+left_word+'</div>'
-        two = '<div style="color: '+ colorFB['r'] +'; position: absolute; top: 50%; left: 37.5%; transform: translate(-50%, 0);">Vermoed <br> '+left_word+'</div>'
-        three = '<div style="color: '+ colorFB['t'] +'; position: absolute; top: 50%; left: 45%; transform: translate(-50%, 0);">Gok <br> '+left_word+'</div>'
-        eight = '<div style="color: '+ colorFB['u'] +'; position: absolute; top: 50%; left: 55%; transform: translate(-50%, 0);">Gok <br> '+right_word+'</div>'
-        nine = '<div style="color: '+ colorFB['i'] +'; position: absolute; top: 50%; left: 62.5%; transform: translate(-50%, 0);">Vermoed <br> '+right_word+'</div>'
-        zero = '<div style="color: '+ colorFB['o'] +'; position: absolute; top: 50%; left: 70%; transform: translate(-50%, 0);">Zeker <br> '+right_word+'</div>'
-        return one + two + three + eight + nine + zero
-      },
-      trial_duration: 200,
-      response_ends_trial: faster_trials,
-      on_finish: function(data){
-        data.event = 'confidence_feedback'
-      } // immediately recode counterbalanced confidence
-    };
+    }
 
     var trialFB = {
       type: 'html-keyboard-response',
@@ -529,14 +467,14 @@
     };
 
     var trial_procedure_training_3 = {
-      timeline: [fix, rdk, confidence_rating, confidence_feedback],
+      timeline: [fix, rdk, confidence_slider],
       timeline_variables: training_design2,
       repetitions: n_design_reps_training,
       randomize_order: true
     };
 
     var trial_procedure_main = {
-      timeline: [fix, rdk, confidence_rating, confidence_feedback],
+      timeline: [fix, rdk, confidence_slider],
       timeline_variables: design,
       repetitions: n_design_reps,
       randomize_order: true
@@ -619,7 +557,7 @@
     // run the procedures
     jsPsych.init({
         timeline: [initials, informed_consent, full_screen, instruct1, block_training_1_loop_node, instruct2, block_training_2_loop_node, instruct3, block_training_3_loop_node, instruct4, block_main_loop_node, Qs],
-        preload_images: ['img/ic.png', 'img/Slide1.PNG', 'img/Slide2.PNG', 'img/Slide3A.PNG', 'img/Slide3B.PNG', 'img/Slide4A.PNG','img/Slide4B.PNG']
+        preload_images: ['img/ic.png', 'img/Slide1.PNG', 'img/Slide2.PNG', 'img/Slide3.PNG', 'img/Slide4.PNG']
     })
 
     </script>
