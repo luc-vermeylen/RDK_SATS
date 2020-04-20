@@ -26,21 +26,21 @@
     <script>
 
     // variables
-    var faster_trials = true // for debugging, if true, you can stop any event (fixation, stimulus, feedback) immediately with a key press
-    var debug_info_console = true
-    var switch_to_fullscreen = false
-    var n_design_reps = 1 // one repetition = 12 trials per block, 5 repetitons of the design = 60 trials per block
-    var n_design_reps_training = 1
-    var n_blocks = 2 // number of experimental blocks (there is also at least one training block with coherence .4 and another training block with coherence .4, .2 or .05)
+    var faster_trials = false // for debugging, if true, you can stop any event (fixation, stimulus, feedback) immediately with a key press
+    var debug_info_console = false
+    var switch_to_fullscreen = true
+    var n_design_reps = 5 // one repetition = 12 trials per block, 5 repetitons of the design = 60 trials per block
+    var n_design_reps_training = 2
+    var n_blocks = 10 // number of experimental blocks (there is also at least one training block with coherence .4 and another training block with coherence .4, .2 or .05)
 
-    var training_1_criterion = 50 // percentage accuracy necessary to move on in training 1 (coherence = .4)
-    var training_2_criterion = 50
-    var training_3_criterion = 50
+    var training_1_criterion = 85 // percentage accuracy necessary to move on in training 1 (coherence = .4)
+    var training_2_criterion = 60
+    var training_3_criterion = 60
 
     var trial = 1 // initialize counter
     var block = 1 // initialize counter
     var phase = -1 // initialize
-    var current_condition = -1
+    var current_condition = -1 // initialize
 
     var experimental_coherence = .20
     var training_coherence = .50
